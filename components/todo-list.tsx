@@ -9,14 +9,10 @@ import { Button } from "@/components/ui/button";
 
 type Props = {
   todos: Todo[];
-  changeTodos: (
-    todoId: string,
-    action: "add" | "toggle" | "delete" | "edit",
-    content?: string,
-  ) => void;
+  dispatch: React.Dispatch<TodoAction>;
 };
 
-export default function TodoList({ todos, changeTodos }: Props) {
+export default function TodoList({ todos, dispatch }: Props) {
   const [editableTodoId, setEditableTodoId] = useState("");
   const editInputRef = useRef<HTMLInputElement | null>(null);
   const [animationParent] = useAutoAnimate();
@@ -27,6 +23,8 @@ export default function TodoList({ todos, changeTodos }: Props) {
     }
   }, [editableTodoId]);
 
+  if (!todos.length) return null;
+
   return (
     <ul ref={animationParent} className="flex flex-col gap-1">
       {todos.map((todo) => (
@@ -36,7 +34,7 @@ export default function TodoList({ todos, changeTodos }: Props) {
         >
           <Checkbox
             className="rounded-full"
-            onClick={() => changeTodos(todo.id, "toggle")}
+            onClick={() => dispatch({ type: "TOGGLE", id: todo.id })}
             checked={todo.done}
           />
           {todo.id === editableTodoId ? (
@@ -45,11 +43,19 @@ export default function TodoList({ todos, changeTodos }: Props) {
               defaultValue={todo.content}
               onBlur={(e) => {
                 setEditableTodoId("");
-                changeTodos(todo.id, "edit", e.currentTarget.value);
+                dispatch({
+                  type: "EDIT",
+                  id: todo.id,
+                  content: e.currentTarget.value,
+                });
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  changeTodos(todo.id, "edit", e.currentTarget.value);
+                  dispatch({
+                    type: "EDIT",
+                    id: todo.id,
+                    content: e.currentTarget.value,
+                  });
                   e.currentTarget.blur();
                 }
               }}
@@ -66,7 +72,7 @@ export default function TodoList({ todos, changeTodos }: Props) {
             </span>
           )}
           <Button
-            onClick={() => changeTodos(todo.id, "delete")}
+            onClick={() => dispatch({ type: "DELETE", id: todo.id })}
             className="rounded-full bg-muted px-2 hover:bg-destructive"
           >
             <Trash />
