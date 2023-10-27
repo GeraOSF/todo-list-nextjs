@@ -11,7 +11,7 @@ import { todosReducer } from "@/state/todos-reducer";
 export default function Home() {
   const [todos, dispatch] = useReducer(todosReducer, []);
   const [newTodoText, setNewTodoText] = useState("");
-  const [showCompleted, setShowCompleted] = useState(true);
+  const [showDone, setShowDone] = useState(true);
 
   useEffect(() => {
     const localTodos = localStorage.getItem("todos");
@@ -33,19 +33,19 @@ export default function Home() {
         <TodoList todos={undoneTodos} dispatch={dispatch} />
         {doneTodos.length !== 0 && (
           <Button
-            onClick={() => setShowCompleted(!showCompleted)}
+            onClick={() => setShowDone(!showDone)}
             className="mb-2 mt-4 flex gap-2 bg-muted font-semibold hover:bg-muted"
           >
             <ChevronRight
               className={cn("duration-200", {
-                "rotate-90": showCompleted,
+                "rotate-90": showDone,
               })}
             />
-            Completed
+            Done
             <span className="text-opacity-50">{doneTodos.length}</span>
           </Button>
         )}
-        {showCompleted && <TodoList todos={doneTodos} dispatch={dispatch} />}
+        {showDone && <TodoList todos={doneTodos} dispatch={dispatch} />}
       </section>
 
       {/* Input section */}
