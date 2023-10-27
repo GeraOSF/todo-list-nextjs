@@ -1,8 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { Plus, ChevronRight } from "lucide-react";
 
-import Todos from "@/components/todos";
-import TodoInput from "@/components/todo-input";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import TodoList from "@/components/todo-list";
 
 export default function Home() {
   const mockTodos = [
@@ -53,23 +56,91 @@ export default function Home() {
     },
   ];
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [newTodoText, setNewTodoText] = useState("");
+  const [showCompleted, setShowCompleted] = useState(true);
 
   useEffect(() => {
     const localTodos = localStorage.getItem("todos");
     if (localTodos) setTodos(JSON.parse(localTodos));
   }, []);
 
-  function addTodo(content: string) {
-    const newTodo = { id: crypto.randomUUID(), content, done: false };
-    setTodos([newTodo, ...todos]);
-    localStorage.setItem("todos", JSON.stringify([newTodo, ...todos]));
-    window.scroll({ top: 0, behavior: "smooth" });
+  function changeTodos(
+    todoId: string,
+    action: "add" | "toggle" | "delete" | "edit",
+    content?: string,
+  ) {
+    let updatedTodos: Todo[];
+    if (action === "add") {
+      if (!content) return;
+      const newTodo = { id: crypto.randomUUID(), content, done: false };
+      updatedTodos = [newTodo, ...todos];
+      setNewTodoText("");
+    } else if (action === "toggle") {
+      updatedTodos = todos.map((t) =>
+        t.id === todoId ? { ...t, done: !t.done } : t,
+      );
+    } else if (action === "edit") {
+      updatedTodos = todos.map((t) =>
+        t.id === todoId && content ? { ...t, content } : t,
+      );
+    } else if (action === "delete") {
+      updatedTodos = todos.filter((t) => t.id !== todoId);
+    }
+
+    setTodos(updatedTodos!);
+    localStorage.setItem("todos", JSON.stringify(updatedTodos!));
   }
+
+  const doneTodos = useMemo(() => todos.filter((t) => t.done), [todos]);
+  const undoneTodos = useMemo(() => todos.filter((t) => !t.done), [todos]);
 
   return (
     <main className="flex flex-col items-center gap-2 p-1 text-xl lg:container">
-      <Todos todos={todos} setTodos={setTodos} />
-      <TodoInput addTodo={addTodo} />
+      {/* Todos section */}
+      <section className="w-full">
+        {todos.length === 0 && (
+          <p className="py-5 text-center font-black text-muted-foreground opacity-50">
+            Add a to-do to get started!
+          </p>
+        )}
+        <TodoList todos={undoneTodos} changeTodos={changeTodos} />
+        <Button
+          onClick={() => setShowCompleted(!showCompleted)}
+          className="mb-2 mt-4 flex gap-2 bg-muted font-semibold hover:bg-muted"
+        >
+          <ChevronRight
+            className={cn("duration-200", {
+              "rotate-90": showCompleted,
+            })}
+          />
+          Completed
+          <span className="text-opacity-50">{doneTodos.length}</span>
+        </Button>
+        {showCompleted && (
+          <TodoList todos={doneTodos} changeTodos={changeTodos} />
+        )}
+      </section>
+
+      {/* Input section */}
+      <section className="sticky bottom-1 w-full">
+        <div className="relative">
+          <Input
+            className="px-4 py-8 pl-16 text-xl placeholder:text-muted-foreground placeholder:opacity-60"
+            onChange={(e) => setNewTodoText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") changeTodos("", "add", newTodoText);
+            }}
+            value={newTodoText}
+            placeholder="Add a to-do..."
+          />
+          <Button
+            onClick={() => changeTodos("", "add", newTodoText)}
+            className="absolute left-3 top-4 h-fit rounded-full bg-background p-0 hover:bg-muted"
+          >
+            <Plus className="h-9 w-9" />
+          </Button>
+        </div>
+      </section>
     </main>
   );
 }
