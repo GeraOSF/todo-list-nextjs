@@ -15,7 +15,7 @@ type Props = {
 export default function TodoList({ todos, dispatch }: Props) {
   const [editableTodoId, setEditableTodoId] = useState("");
   const editInputRef = useRef<HTMLInputElement | null>(null);
-  const [animationParent] = useAutoAnimate();
+  const [animationParent] = useAutoAnimate({ duration: 150 });
 
   useEffect(() => {
     if (editInputRef.current && editableTodoId !== "") {
