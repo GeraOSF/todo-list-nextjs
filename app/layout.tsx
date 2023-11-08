@@ -8,7 +8,8 @@ const pacifico = Pacifico({ subsets: ["latin"], weight: "400" });
 
 export const metadata: Metadata = {
   title: "To-do App",
-  description: "To-do app built with Next.js and Tailwind CSS",
+  description:
+    "To-do app built with Next.js, Typescript, Tailwind CSS, and shadcn/ui.",
 };
 
 export default function RootLayout({
